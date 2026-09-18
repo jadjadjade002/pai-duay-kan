@@ -5,3 +5,10 @@
 html,body{font-family:"SF Thonburi","Thonburi",-apple-system,BlinkMacSystemFont,"Leelawadee UI",Tahoma,sans-serif}
 .cover{height:96px}
 .hero>svg{display:none}
+.cardbody footer>b{display:none}
+.infolist>div:nth-child(4) span{font-size:0}
+.infolist>div:nth-child(4) span>b{font-size:14px}
+.joinbar>span{display:none}
+.joinbar{justify-content:flex-end}
+.form label:has(input[placeholder="0"]){display:none}
+.form .twocol:has(input[placeholder="0"]){grid-template-columns:1fr}
