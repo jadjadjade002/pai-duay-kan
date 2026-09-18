@@ -1,27 +1,876 @@
 "use client";
-import {useMemo,useState} from "react";
-import {Apple,ArrowLeft,Bell,Bookmark,CalendarDays,Check,ChevronRight,CircleUserRound,Compass,Flag,Gamepad2,GraduationCap,HeartHandshake,House,MapPin,MessageCircle,Music2,Plus,Search,ShieldCheck,SlidersHorizontal,Trophy,Users,Utensils,X} from "lucide-react";
-type Cat="กีฬา"|"ท่องเที่ยว"|"เกม"|"ดนตรี"|"อาหาร"|"เรียนรู้";
-type View="welcome"|"login"|"register"|"home"|"discover"|"detail"|"create"|"mine"|"profile";
-type Act={id:number;title:string;cat:Cat;date:string;time:string;place:string;joined:number;cap:number;cost:string;level:string;gender:string;age:string;host:string;desc:string;joinedByMe?:boolean};
-const cats:[Cat,typeof Trophy][]=[["กีฬา",Trophy],["ท่องเที่ยว",Compass],["เกม",Gamepad2],["ดนตรี",Music2],["อาหาร",Utensils],["เรียนรู้",GraduationCap]];
-const seed:Act[]=[
-{id:1,title:"วิ่งรับลมเย็นที่สวนเบญจกิติ",cat:"กีฬา",date:"ส. 21 ก.ย.",time:"17:30–19:00",place:"สวนเบญจกิติ กรุงเทพฯ",joined:12,cap:18,cost:"ฟรี",level:"เริ่มต้น",gender:"ทุกเพศ",age:"18–35 ปี",host:"พีท",desc:"วิ่งสบาย ๆ ระยะประมาณ 5 กิโลเมตร ชวนกันออกกำลังและรู้จักเพื่อนใหม่ ไม่ต้องทำเวลา มือใหม่มาได้"},
-{id:2,title:"ตะลุยตลาดน้อย ถ่ายรูปย่านเก่า",cat:"ท่องเที่ยว",date:"อา. 22 ก.ย.",time:"09:00–13:00",place:"ตลาดน้อย กรุงเทพฯ",joined:5,cap:8,cost:"ประมาณ 200 บาท",level:"ทุกระดับ",gender:"ทุกเพศ",age:"18–30 ปี",host:"อิง",desc:"เดินเล่น ถ่ายภาพ และแวะชิมของอร่อยในย่านตลาดน้อย เน้นบรรยากาศสบาย ๆ และเคารพพื้นที่ชุมชน"},
-{id:3,title:"บอร์ดเกมหลังเลิกเรียน",cat:"เกม",date:"ศ. 27 ก.ย.",time:"18:00–21:00",place:"สามย่านมิตรทาวน์",joined:6,cap:10,cost:"ประมาณ 120 บาท",level:"มือใหม่",gender:"ทุกเพศ",age:"18–28 ปี",host:"นนท์",desc:"รวมตัวเล่นบอร์ดเกมแนวปาร์ตี้และวางแผน มาคนเดียวได้ มีคนสอนกติกาทุกเกม"},
-{id:4,title:"ฝึกกีตาร์และร้องเพลงด้วยกัน",cat:"ดนตรี",date:"ส. 28 ก.ย.",time:"14:00–16:30",place:"หอศิลป์กรุงเทพฯ",joined:4,cap:8,cost:"ฟรี",level:"พื้นฐาน",gender:"ทุกเพศ",age:"18–35 ปี",host:"เมย์",desc:"วงเล็ก ๆ สำหรับคนอยากฝึกกีตาร์และร้องเพลง แลกเพลงกันเล่นแบบไม่กดดัน"},
-{id:5,title:"ชวนชิมร้านลับย่านอารีย์",cat:"อาหาร",date:"อา. 29 ก.ย.",time:"11:30–14:00",place:"BTS อารีย์",joined:3,cap:6,cost:"ประมาณ 350 บาท",level:"ทุกระดับ",gender:"ทุกเพศ",age:"20–40 ปี",host:"ฝน",desc:"ลองร้านเล็ก ๆ ในย่านอารีย์ แชร์เมนู แบ่งกันชิม และคุยกับเพื่อนใหม่แบบกลุ่มเล็ก"},
-{id:6,title:"ติวภาษาอังกฤษแลกเปลี่ยนกัน",cat:"เรียนรู้",date:"พ. 2 ต.ค.",time:"18:30–20:00",place:"ออนไลน์ผ่าน Google Meet",joined:7,cap:12,cost:"ฟรี",level:"พื้นฐาน",gender:"ทุกเพศ",age:"18 ปีขึ้นไป",host:"เจ",desc:"ฝึกสนทนาภาษาอังกฤษผ่านหัวข้อใกล้ตัว แบ่งกลุ่มย่อยและช่วยกันให้คำแนะนำอย่างเป็นมิตร"}];
-function Logo({small=false}:{small?:boolean}){return <div className={"logo "+(small?"small":"")}><HeartHandshake/></div>}
-function Shell({children}:{children:React.ReactNode}){return <div className="stage"><div className="phone">{children}</div></div>}
-function Top({title,back,action}:{title:string;back?:()=>void;action?:React.ReactNode}){return <header className="top">{back?<button className="icon" onClick={back}><ArrowLeft/></button>:<Logo small/>}<b>{title}</b><div>{action}</div></header>}
-function Nav({view,set}:{view:View;set:(v:View)=>void}){const all:[View,string,typeof House][]=[["home","หน้าแรก",House],["discover","ค้นหา",Search],["mine","ของฉัน",CalendarDays],["profile","โปรไฟล์",CircleUserRound]];return <nav className="nav">{all.slice(0,2).map(([v,l,I])=><button className={view===v?"on":""} onClick={()=>set(v)} key={v}><I/><span>{l}</span></button>)}<button className="create" onClick={()=>set("create")}><Plus/></button>{all.slice(2).map(([v,l,I])=><button className={view===v?"on":""} onClick={()=>set(v)} key={v}><I/><span>{l}</span></button>)}</nav>}
-function Card({a,open,saved,toggle}:{a:Act;open:()=>void;saved:boolean;toggle:()=>void}){return <article className="card" tabIndex={0} onClick={open} onKeyDown={e=>e.key==="Enter"&&open()}><div className={"cover c"+a.id}><span>{a.cat}</span><button onClick={e=>{e.stopPropagation();toggle()}}><Bookmark fill={saved?"currentColor":"none"}/></button></div><div className="cardbody"><h3>{a.title}</h3><p><CalendarDays/>{a.date} · {a.time}</p><p><MapPin/>{a.place}</p><footer><span><Users/>เหลือ {a.cap-a.joined} ที่</span><b>{a.cost}</b></footer></div></article>}
-function Auth({reg,back,done,swap}:{reg:boolean;back:()=>void;done:()=>void;swap:()=>void}){const[loading,setLoading]=useState("");const go=(p:string)=>{setLoading(p);setTimeout(done,500)};return <main className="auth fade"><button className="icon" onClick={back}><ArrowLeft/></button><div className="authbrand"><Logo/><b>ไปด้วยกัน</b></div><span className="eyebrow">ชุมชนกิจกรรมที่เป็นมิตร</span><h1>{reg?"เริ่มรู้จักเพื่อนใหม่":"ยินดีต้อนรับกลับมา"}</h1><p>{reg?"สร้างโปรไฟล์สั้น ๆ แล้วออกไปทำสิ่งที่ชอบด้วยกัน":"เข้าสู่ระบบเพื่อดูนัดหมายและกิจกรรมที่บันทึกไว้"}</p>{reg&&<div className="fields"><label>ชื่อที่ต้องการให้แสดง<input placeholder="เช่น มินตรา"/></label><label>อีเมล<input type="email" placeholder="name@email.com"/></label></div>}<div className="social"><button onClick={()=>go("Google")}><b>G</b>{loading==="Google"?"กำลังดำเนินการ...":"ดำเนินการต่อด้วย Google"}</button><button onClick={()=>go("Facebook")}><b className="facebook-letter">f</b>{loading==="Facebook"?"กำลังดำเนินการ...":"ดำเนินการต่อด้วย Facebook"}</button><button onClick={()=>go("Apple")}><Apple/>{loading==="Apple"?"กำลังดำเนินการ...":"ดำเนินการต่อด้วย Apple"}</button></div><aside className="demo"><ShieldCheck/>ระบบเข้าสู่ระบบเป็นบัญชีทดลอง ยังไม่เชื่อมต่อผู้ให้บริการจริง</aside><p className="swap">{reg?"มีบัญชีอยู่แล้ว":"ยังไม่มีบัญชี"} <button onClick={swap}>{reg?"เข้าสู่ระบบ":"สมัครสมาชิก"}</button></p><small className="terms">การดำเนินการต่อแสดงว่าคุณยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว</small></main>}
-export default function App(){const[view,setView]=useState<View>("welcome"),[acts,setActs]=useState(seed),[picked,setPicked]=useState(1),[cat,setCat]=useState<Cat|"ทั้งหมด">("ทั้งหมด"),[q,setQ]=useState(""),[saved,setSaved]=useState([2]),[toast,setToast]=useState("");const selected=acts.find(a=>a.id===picked)||acts[0],filtered=useMemo(()=>acts.filter(a=>(cat==="ทั้งหมด"||a.cat===cat)&&a.title.includes(q)),[acts,cat,q]);const open=(id:number)=>{setPicked(id);setView("detail")},toggleSave=(id:number)=>setSaved(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id]),notify=(s:string)=>{setToast(s);setTimeout(()=>setToast(""),1800)};
-if(view==="welcome")return <Shell><main className="welcome fade"><div className="art"><i/><i/><i/><div><Logo/></div></div><section><span className="eyebrow">กิจกรรมดี ๆ เริ่มจากคนที่ชอบเหมือนกัน</span><h1>ไปด้วยกัน</h1><h2>เจอกิจกรรมที่ชอบ<br/>พบเพื่อนที่ใช่</h2><p>ค้นหา เข้าร่วม หรือสร้างกิจกรรมใกล้ตัว ในชุมชนที่ออกแบบให้ทุกคนรู้สึกเป็นส่วนหนึ่ง</p></section><footer><button className="primary" onClick={()=>setView("register")}>เริ่มต้นใช้งาน <ChevronRight/></button><button className="link" onClick={()=>setView("login")}>มีบัญชีแล้ว เข้าสู่ระบบ</button><button className="guest" onClick={()=>setView("home")}>ดูแบบผู้เยี่ยมชม</button></footer></main></Shell>;
-if(view==="login"||view==="register")return <Shell><Auth reg={view==="register"} back={()=>setView("welcome")} done={()=>setView("home")} swap={()=>setView(view==="login"?"register":"login")}/></Shell>;
-return <Shell>{toast&&<div className="toast"><Check/>{toast}</div>}{view==="home"&&<main className="screen pad fade"><header className="hello"><div><span>สวัสดี มินตรา</span><h1>วันนี้อยากทำอะไร</h1></div><button><Bell/><i/></button></header><button className="searchbox" onClick={()=>setView("discover")}><Search/><span>ค้นหากิจกรรมหรือสถานที่</span><SlidersHorizontal/></button><section className="feature"><span>กิจกรรมแนะนำใกล้คุณ</span><h2>ออกไปเจอประสบการณ์ใหม่<br/>พร้อมเพื่อนใหม่</h2><button onClick={()=>open(1)}>ดูกิจกรรม <ChevronRight/></button><HeartHandshake/></section><Title text="เลือกจากสิ่งที่ชอบ" action={()=>setView("discover")}/><div className="catgrid">{cats.map(([n,I])=><button key={n} onClick={()=>{setCat(n);setView("discover")}}><I/><span>{n}</span></button>)}</div><Title text="กำลังเป็นที่สนใจ" action={()=>setView("discover")}/><div className="rail">{acts.slice(0,3).map(a=><Card key={a.id} a={a} open={()=>open(a.id)} saved={saved.includes(a.id)} toggle={()=>toggleSave(a.id)}/>)}</div></main>}{view==="discover"&&<main className="screen pad fade"><Top title="ค้นหากิจกรรม" action={<button className="icon"><SlidersHorizontal/></button>}/><div className="searchinput"><Search/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="ชื่อกิจกรรมหรือสถานที่"/>{q&&<button onClick={()=>setQ("")}><X/></button>}</div><div className="chips"><button className={cat==="ทั้งหมด"?"on":""} onClick={()=>setCat("ทั้งหมด")}>ทั้งหมด</button>{cats.map(([n])=><button key={n} className={cat===n?"on":""} onClick={()=>setCat(n)}>{n}</button>)}</div><div className="result"><b>{filtered.length} กิจกรรม</b><span>ใกล้ที่สุด</span></div><div className="list">{filtered.map(a=><Card key={a.id} a={a} open={()=>open(a.id)} saved={saved.includes(a.id)} toggle={()=>toggleSave(a.id)}/>)}{!filtered.length&&<div className="empty"><Search/><h3>ไม่พบกิจกรรมที่ตรงกัน</h3><p>ลองเปลี่ยนคำค้นหาหรือหมวดกิจกรรม</p><button onClick={()=>{setQ("");setCat("ทั้งหมด")}}>ล้างตัวกรอง</button></div>}</div></main>}{view==="detail"&&<main className="screen detail fade"><div className={"hero c"+selected.id}><button className="float left" onClick={()=>setView("discover")}><ArrowLeft/></button><button className="float right" onClick={()=>toggleSave(selected.id)}><Bookmark fill={saved.includes(selected.id)?"currentColor":"none"}/></button><HeartHandshake/></div><div className="detailbody"><span className="pill">{selected.cat}</span><h1>{selected.title}</h1><div className="host"><i>{selected.host[0]}</i><span>จัดโดย<b>{selected.host}</b></span><button><MessageCircle/>ข้อความ</button></div><div className="infolist"><Info I={CalendarDays} a={selected.date} b={selected.time}/><Info I={MapPin} a={selected.place} b="แจ้งจุดนัดพบหลังเข้าร่วม"/><Info I={Users} a={selected.joined+"/"+selected.cap+" คน"} b={selected.gender+" · อายุ "+selected.age}/><Info I={Trophy} a={"ระดับ "+selected.level} b={selected.cost}/></div><h2>เกี่ยวกับกิจกรรม</h2><p className="description">{selected.desc}</p><aside className="safety"><ShieldCheck/><span><b>นัดพบอย่างปลอดภัย</b>พบกันในพื้นที่สาธารณะและแจ้งคนใกล้ตัวก่อนเข้าร่วม</span></aside><button className="report"><Flag/>รายงานกิจกรรมนี้</button></div><div className="joinbar"><span><b>{selected.cost}</b><small>ไม่มีค่าบริการแพลตฟอร์ม</small></span><button className={selected.joinedByMe?"joined":""} onClick={()=>{setActs(v=>v.map(a=>a.id===selected.id?{...a,joinedByMe:!a.joinedByMe,joined:a.joined+(a.joinedByMe?-1:1)}:a));notify(selected.joinedByMe?"ออกจากกิจกรรมแล้ว":"เข้าร่วมกิจกรรมเรียบร้อย")}}>{selected.joinedByMe?"เข้าร่วมแล้ว":"เข้าร่วมกิจกรรม"}</button></div></main>}{view==="create"&&<Create back={()=>setView("home")} done={a=>{setActs(v=>[a,...v]);notify("สร้างกิจกรรมเรียบร้อยแล้ว");setView("mine")}}/>}{view==="mine"&&<main className="screen pad fade"><Top title="กิจกรรมของฉัน"/><section className="summary"><i>ม</i><span><b>นัดหมายที่กำลังจะมาถึง</b><small>{acts.filter(a=>a.joinedByMe).length+1} กิจกรรม</small></span></section><div className="tabs"><button className="on">กำลังจะมาถึง</button><button>สร้างโดยฉัน</button><button>ที่ผ่านมา</button></div><div className="list">{acts.filter(a=>a.joinedByMe||a.id===2).map(a=><Card key={a.id} a={a} open={()=>open(a.id)} saved={saved.includes(a.id)} toggle={()=>toggleSave(a.id)}/>)}</div></main>}{view==="profile"&&<main className="screen pad fade"><Top title="โปรไฟล์" action={<button className="textaction">ตั้งค่า</button>}/><section className="profile"><i>ม</i><span><h1>มินตรา สุวรรณ</h1><p>กรุงเทพฯ · สมาชิกตั้งแต่ปี 2569</p><button>แก้ไขโปรไฟล์</button></span></section><div className="stats"><span><b>8</b>เข้าร่วมแล้ว</span><span><b>3</b>จัดกิจกรรม</span><span><b>{saved.length}</b>บันทึกไว้</span></div><section className="block"><h2>เกี่ยวกับฉัน</h2><p>ชอบลองกิจกรรมใหม่ ๆ หาเพื่อนไปคาเฟ่ ออกกำลัง และเรียนรู้สิ่งใหม่ในวันหยุด</p></section><section className="block"><h2>ความสนใจ</h2><div className="tags"><i>ท่องเที่ยว</i><i>อาหาร</i><i>ดนตรี</i><i>เรียนรู้</i></div></section><section className="block menu"><button><ShieldCheck/>ความปลอดภัยและความเป็นส่วนตัว<ChevronRight/></button><button><MessageCircle/>ศูนย์ช่วยเหลือ<ChevronRight/></button></section><button className="logout" onClick={()=>setView("welcome")}>ออกจากระบบ</button></main>}{view!=="detail"&&view!=="create"&&<Nav view={view} set={setView}/>}</Shell>}
-function Title({text,action}:{text:string;action:()=>void}){return <div className="title"><h2>{text}</h2><button onClick={action}>ดูทั้งหมด</button></div>}
-function Info({I,a,b}:{I:typeof Trophy;a:string;b:string}){return <div><I/><span><b>{a}</b>{b}</span></div>}
-function Create({back,done}:{back:()=>void;done:(a:Act)=>void}){const[title,setTitle]=useState(""),[cat,setCat]=useState<Cat>("กีฬา"),[place,setPlace]=useState(""),[cost,setCost]=useState(""),[desc,setDesc]=useState("");return <main className="screen form fade"><Top title="สร้างกิจกรรม" back={back}/><section className="formintro"><span>ขั้นตอนเดียว</span><h1>ชวนเพื่อนออกไปทำสิ่งที่ชอบ</h1><p>ใส่ข้อมูลให้ชัดเจน เพื่อให้คนที่สนใจตัดสินใจได้ง่ายขึ้น</p></section><form onSubmit={e=>{e.preventDefault();done({id:Date.now(),title,cat,date:"ส. 5 ต.ค.",time:"14:00–16:00",place,joined:1,cap:8,cost:cost?"ประมาณ "+cost+" บาท":"ฟรี",level:"ทุกระดับ",gender:"ทุกเพศ",age:"18 ปีขึ้นไป",host:"มินตรา",desc:desc||"มาร่วมทำกิจกรรมและทำความรู้จักเพื่อนใหม่ไปด้วยกัน"})}}><label>ชื่อกิจกรรม<input required value={title} onChange={e=>setTitle(e.target.value)} placeholder="เช่น ชวนตีแบดหลังเลิกเรียน"/></label><label>หมวดกิจกรรม<select value={cat} onChange={e=>setCat(e.target.value as Cat)}>{cats.map(([n])=><option key={n}>{n}</option>)}</select></label><div className="twocol"><label>วันที่<input type="date" defaultValue="2026-10-05"/></label><label>เวลา<input type="time" defaultValue="14:00"/></label></div><label>สถานที่<input required value={place} onChange={e=>setPlace(e.target.value)} placeholder="สถานที่หรือพื้นที่โดยประมาณ"/></label><div className="twocol"><label>จำนวนสูงสุด<input type="number" min="2" defaultValue="8"/></label><label>ค่าใช้จ่ายโดยประมาณ<input type="number" min="0" value={cost} onChange={e=>setCost(e.target.value)} placeholder="0"/></label></div><label>รายละเอียด<textarea rows={4} value={desc} onChange={e=>setDesc(e.target.value)} placeholder="เล่าบรรยากาศและสิ่งที่ควรเตรียม"/></label><aside className="demo"><ShieldCheck/>สถานที่สาธารณะช่วยให้ทุกคนรู้สึกปลอดภัยมากขึ้น</aside><button className="primary" disabled={!title||!place}>เผยแพร่กิจกรรม</button></form></main>}
+import { useEffect, useMemo, useState } from "react";
+import {
+  Apple,
+  ArrowLeft,
+  Bell,
+  Bookmark,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  CircleUserRound,
+  Compass,
+  Flag,
+  Gamepad2,
+  GraduationCap,
+  HeartHandshake,
+  House,
+  MapPin,
+  MessageCircle,
+  Music2,
+  Plus,
+  Search,
+  ShieldCheck,
+  SlidersHorizontal,
+  Trophy,
+  Users,
+  Utensils,
+  X,
+} from "lucide-react";
+type Cat = "กีฬา" | "ท่องเที่ยว" | "เกม" | "ดนตรี" | "อาหาร" | "เรียนรู้";
+type View =
+  | "welcome"
+  | "login"
+  | "register"
+  | "home"
+  | "discover"
+  | "detail"
+  | "create"
+  | "mine"
+  | "profile";
+type Act = {
+  id: number;
+  title: string;
+  cat: Cat;
+  date: string;
+  time: string;
+  place: string;
+  joined: number;
+  cap: number;
+  level: string;
+  gender: string;
+  age: string;
+  host: string;
+  desc: string;
+  joinedByMe?: boolean;
+};
+const cats: [Cat, typeof Trophy][] = [
+  ["กีฬา", Trophy],
+  ["ท่องเที่ยว", Compass],
+  ["เกม", Gamepad2],
+  ["ดนตรี", Music2],
+  ["อาหาร", Utensils],
+  ["เรียนรู้", GraduationCap],
+];
+const seed: Act[] = [
+  {
+    id: 1,
+    title: "วิ่งรับลมเย็นที่สวนเบญจกิติ",
+    cat: "กีฬา",
+    date: "ส. 21 ก.ย.",
+    time: "17:30–19:00",
+    place: "สวนเบญจกิติ กรุงเทพฯ",
+    joined: 12,
+    cap: 18,
+    level: "เริ่มต้น",
+    gender: "ทุกเพศ",
+    age: "18–35 ปี",
+    host: "พีท",
+    desc: "วิ่งสบาย ๆ ระยะประมาณ 5 กิโลเมตร ชวนกันออกกำลังและรู้จักเพื่อนใหม่ ไม่ต้องทำเวลา มือใหม่มาได้",
+  },
+  {
+    id: 2,
+    title: "ตะลุยตลาดน้อย ถ่ายรูปย่านเก่า",
+    cat: "ท่องเที่ยว",
+    date: "อา. 22 ก.ย.",
+    time: "09:00–13:00",
+    place: "ตลาดน้อย กรุงเทพฯ",
+    joined: 5,
+    cap: 8,
+    level: "ทุกระดับ",
+    gender: "ทุกเพศ",
+    age: "18–30 ปี",
+    host: "อิง",
+    desc: "เดินเล่น ถ่ายภาพ และแวะชิมของอร่อยในย่านตลาดน้อย เน้นบรรยากาศสบาย ๆ และเคารพพื้นที่ชุมชน",
+  },
+  {
+    id: 3,
+    title: "บอร์ดเกมหลังเลิกเรียน",
+    cat: "เกม",
+    date: "ศ. 27 ก.ย.",
+    time: "18:00–21:00",
+    place: "สามย่านมิตรทาวน์",
+    joined: 6,
+    cap: 10,
+    level: "มือใหม่",
+    gender: "ทุกเพศ",
+    age: "18–28 ปี",
+    host: "นนท์",
+    desc: "รวมตัวเล่นบอร์ดเกมแนวปาร์ตี้และวางแผน มาคนเดียวได้ มีคนสอนกติกาทุกเกม",
+  },
+  {
+    id: 4,
+    title: "ฝึกกีตาร์และร้องเพลงด้วยกัน",
+    cat: "ดนตรี",
+    date: "ส. 28 ก.ย.",
+    time: "14:00–16:30",
+    place: "หอศิลป์กรุงเทพฯ",
+    joined: 4,
+    cap: 8,
+    level: "พื้นฐาน",
+    gender: "ทุกเพศ",
+    age: "18–35 ปี",
+    host: "เมย์",
+    desc: "วงเล็ก ๆ สำหรับคนอยากฝึกกีตาร์และร้องเพลง แลกเพลงกันเล่นแบบไม่กดดัน",
+  },
+  {
+    id: 5,
+    title: "ชวนชิมร้านลับย่านอารีย์",
+    cat: "อาหาร",
+    date: "อา. 29 ก.ย.",
+    time: "11:30–14:00",
+    place: "BTS อารีย์",
+    joined: 3,
+    cap: 6,
+    level: "ทุกระดับ",
+    gender: "ทุกเพศ",
+    age: "20–40 ปี",
+    host: "ฝน",
+    desc: "ลองร้านเล็ก ๆ ในย่านอารีย์ แชร์เมนู แบ่งกันชิม และคุยกับเพื่อนใหม่แบบกลุ่มเล็ก",
+  },
+  {
+    id: 6,
+    title: "ติวภาษาอังกฤษแลกเปลี่ยนกัน",
+    cat: "เรียนรู้",
+    date: "พ. 2 ต.ค.",
+    time: "18:30–20:00",
+    place: "ออนไลน์ผ่าน Google Meet",
+    joined: 7,
+    cap: 12,
+    level: "พื้นฐาน",
+    gender: "ทุกเพศ",
+    age: "18 ปีขึ้นไป",
+    host: "เจ",
+    desc: "ฝึกสนทนาภาษาอังกฤษผ่านหัวข้อใกล้ตัว แบ่งกลุ่มย่อยและช่วยกันให้คำแนะนำอย่างเป็นมิตร",
+  },
+];
+function Logo({ small = false }: { small?: boolean }) {
+  return (
+    <div className={"logo " + (small ? "small" : "")}>
+      <HeartHandshake />
+    </div>
+  );
+}
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="stage">
+      <div className="phone">{children}</div>
+    </div>
+  );
+}
+function Top({
+  title,
+  back,
+  action,
+}: {
+  title: string;
+  back?: () => void;
+  action?: React.ReactNode;
+}) {
+  return (
+    <header className="top">
+      {back ? (
+        <button className="icon" onClick={back}>
+          <ArrowLeft />
+        </button>
+      ) : <span aria-hidden="true" className="top-spacer" />}
+      <b>{title}</b>
+      <div>{action}</div>
+    </header>
+  );
+}
+function Nav({ view, set }: { view: View; set: (v: View) => void }) {
+  const all: [View, string, typeof House][] = [
+    ["home", "หน้าแรก", House],
+    ["discover", "ค้นหา", Search],
+    ["mine", "ของฉัน", CalendarDays],
+    ["profile", "โปรไฟล์", CircleUserRound],
+  ];
+  return (
+    <nav className="nav">
+      {all.slice(0, 2).map(([v, l, I]) => (
+        <button
+          className={view === v ? "on" : ""}
+          onClick={() => set(v)}
+          key={v}
+        >
+          <I />
+          <span>{l}</span>
+        </button>
+      ))}
+      <button className="create" onClick={() => set("create")}>
+        <Plus />
+        <span>สร้าง</span>
+      </button>
+      {all.slice(2).map(([v, l, I]) => (
+        <button
+          className={view === v ? "on" : ""}
+          onClick={() => set(v)}
+          key={v}
+        >
+          <I />
+          <span>{l}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+function Card({
+  a,
+  open,
+  saved,
+  toggle,
+}: {
+  a: Act;
+  open: () => void;
+  saved: boolean;
+  toggle: () => void;
+}) {
+  return (
+    <article
+      className="card"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(e) => e.key === "Enter" && open()}
+    >
+      <div className={"cover c" + a.id}>
+        <span>{a.cat}</span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggle();
+          }}
+        >
+          <Bookmark fill={saved ? "currentColor" : "none"} />
+        </button>
+      </div>
+      <div className="cardbody">
+        <h3>{a.title}</h3>
+        <p>
+          <CalendarDays />
+          {a.date} · {a.time}
+        </p>
+        <p>
+          <MapPin />
+          {a.place}
+        </p>
+        <footer>
+          <span>
+            <Users />
+            เหลือ {a.cap - a.joined} ที่
+          </span>
+        </footer>
+      </div>
+    </article>
+  );
+}
+function Auth({
+  reg,
+  back,
+  done,
+  swap,
+}: {
+  reg: boolean;
+  back: () => void;
+  done: () => void;
+  swap: () => void;
+}) {
+  const [loading, setLoading] = useState("");
+  const go = (p: string) => {
+    setLoading(p);
+    setTimeout(done, 500);
+  };
+  return (
+    <main className="auth fade">
+      <button className="icon" onClick={back}>
+        <ArrowLeft />
+      </button>
+      <div className="authbrand">
+        <Logo />
+        <b>ไปด้วยกัน</b>
+      </div>
+      <span className="eyebrow">ชุมชนกิจกรรมที่เป็นมิตร</span>
+      <h1>{reg ? "เริ่มรู้จักเพื่อนใหม่" : "ยินดีต้อนรับกลับมา"}</h1>
+      <p>
+        {reg
+          ? "สร้างโปรไฟล์สั้น ๆ แล้วออกไปทำสิ่งที่ชอบด้วยกัน"
+          : "เข้าสู่ระบบเพื่อดูนัดหมายและกิจกรรมที่บันทึกไว้"}
+      </p>
+      {reg && (
+        <div className="fields">
+          <label>
+            ชื่อที่ต้องการให้แสดง
+            <input placeholder="เช่น มินตรา" />
+          </label>
+          <label>
+            อีเมล
+            <input type="email" placeholder="name@email.com" />
+          </label>
+        </div>
+      )}
+      <div className="social">
+        <button onClick={() => go("Google")}>
+          <b>G</b>
+          {loading === "Google"
+            ? "กำลังดำเนินการ..."
+            : "ดำเนินการต่อด้วย Google"}
+        </button>
+        <button onClick={() => go("Facebook")}>
+          <b className="facebook-letter">f</b>
+          {loading === "Facebook"
+            ? "กำลังดำเนินการ..."
+            : "ดำเนินการต่อด้วย Facebook"}
+        </button>
+        <button onClick={() => go("Apple")}>
+          <Apple />
+          {loading === "Apple" ? "กำลังดำเนินการ..." : "ดำเนินการต่อด้วย Apple"}
+        </button>
+      </div>
+      <aside className="demo">
+        <ShieldCheck />
+        ระบบเข้าสู่ระบบเป็นบัญชีทดลอง ยังไม่เชื่อมต่อผู้ให้บริการจริง
+      </aside>
+      <p className="swap">
+        {reg ? "มีบัญชีอยู่แล้ว" : "ยังไม่มีบัญชี"}{" "}
+        <button onClick={swap}>{reg ? "เข้าสู่ระบบ" : "สมัครสมาชิก"}</button>
+      </p>
+      <small className="terms">
+        การดำเนินการต่อแสดงว่าคุณยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว
+      </small>
+    </main>
+  );
+}
+export default function App() {
+  const [view, setView] = useState<View>("welcome"),
+    [acts, setActs] = useState(seed),
+    [picked, setPicked] = useState(1),
+    [cat, setCat] = useState<Cat | "ทั้งหมด">("ทั้งหมด"),
+    [q, setQ] = useState(""),
+    [saved, setSaved] = useState([2]),
+    [toast, setToast] = useState("");
+  const selected = acts.find((a) => a.id === picked) || acts[0],
+    filtered = useMemo(
+      () =>
+        acts.filter(
+          (a) => (cat === "ทั้งหมด" || a.cat === cat) && a.title.includes(q),
+        ),
+      [acts, cat, q],
+    );
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    document
+      .querySelector<HTMLElement>(".phone")
+      ?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [view]);
+  const open = (id: number) => {
+      setPicked(id);
+      setView("detail");
+    },
+    toggleSave = (id: number) =>
+      setSaved((s) =>
+        s.includes(id) ? s.filter((x) => x !== id) : [...s, id],
+      ),
+    notify = (s: string) => {
+      setToast(s);
+      setTimeout(() => setToast(""), 1800);
+    };
+  if (view === "welcome")
+    return (
+      <Shell>
+        <main className="welcome fade">
+          <div className="art">
+            <i />
+            <i />
+            <i />
+            <div>
+              <Logo />
+            </div>
+          </div>
+          <section>
+            <span className="eyebrow">
+              กิจกรรมดี ๆ เริ่มจากคนที่ชอบเหมือนกัน
+            </span>
+            <h1>ไปด้วยกัน</h1>
+            <h2>
+              เจอกิจกรรมที่ชอบ
+              <br />
+              พบเพื่อนที่ใช่
+            </h2>
+            <p>
+              ค้นหา เข้าร่วม หรือสร้างกิจกรรมใกล้ตัว
+              ในชุมชนที่ออกแบบให้ทุกคนรู้สึกเป็นส่วนหนึ่ง
+            </p>
+          </section>
+          <footer>
+            <button className="primary" onClick={() => setView("register")}>
+              เริ่มต้นใช้งาน <ChevronRight />
+            </button>
+            <button className="link" onClick={() => setView("login")}>
+              มีบัญชีแล้ว เข้าสู่ระบบ
+            </button>
+            <button className="guest" onClick={() => setView("home")}>
+              ดูแบบผู้เยี่ยมชม
+            </button>
+          </footer>
+        </main>
+      </Shell>
+    );
+  if (view === "login" || view === "register")
+    return (
+      <Shell>
+        <Auth
+          reg={view === "register"}
+          back={() => setView("welcome")}
+          done={() => setView("home")}
+          swap={() => setView(view === "login" ? "register" : "login")}
+        />
+      </Shell>
+    );
+  return (
+    <Shell>
+      {toast && (
+        <div className="toast">
+          <Check />
+          {toast}
+        </div>
+      )}
+      {view === "home" && (
+        <main className="screen pad fade">
+          <header className="hello">
+            <div>
+              <span>สวัสดี มินตรา</span>
+              <h1>วันนี้อยากทำอะไร</h1>
+            </div>
+            <button>
+              <Bell />
+              <i />
+            </button>
+          </header>
+          <button className="searchbox" onClick={() => setView("discover")}>
+            <Search />
+            <span>ค้นหากิจกรรมหรือสถานที่</span>
+            <SlidersHorizontal />
+          </button>
+          <section className="feature">
+            <span>กิจกรรมแนะนำใกล้คุณ</span>
+            <h2>
+              ออกไปเจอประสบการณ์ใหม่
+              <br />
+              พร้อมเพื่อนใหม่
+            </h2>
+            <button onClick={() => open(1)}>
+              ดูกิจกรรม <ChevronRight />
+            </button>
+          </section>
+          <Title text="เลือกจากสิ่งที่ชอบ" action={() => setView("discover")} />
+          <div className="catgrid">
+            {cats.map(([n, I]) => (
+              <button
+                key={n}
+                onClick={() => {
+                  setCat(n);
+                  setView("discover");
+                }}
+              >
+                <I />
+                <span>{n}</span>
+              </button>
+            ))}
+          </div>
+          <Title text="กำลังเป็นที่สนใจ" action={() => setView("discover")} />
+          <div className="rail">
+            {acts.slice(0, 3).map((a) => (
+              <Card
+                key={a.id}
+                a={a}
+                open={() => open(a.id)}
+                saved={saved.includes(a.id)}
+                toggle={() => toggleSave(a.id)}
+              />
+            ))}
+          </div>
+        </main>
+      )}
+      {view === "discover" && (
+        <main className="screen pad fade">
+          <Top
+            title="ค้นหากิจกรรม"
+            action={
+              <button className="icon">
+                <SlidersHorizontal />
+              </button>
+            }
+          />
+          <div className="searchinput">
+            <Search />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="ชื่อกิจกรรมหรือสถานที่"
+            />
+            {q && (
+              <button onClick={() => setQ("")}>
+                <X />
+              </button>
+            )}
+          </div>
+          <div className="chips">
+            <button
+              className={cat === "ทั้งหมด" ? "on" : ""}
+              onClick={() => setCat("ทั้งหมด")}
+            >
+              ทั้งหมด
+            </button>
+            {cats.map(([n]) => (
+              <button
+                key={n}
+                className={cat === n ? "on" : ""}
+                onClick={() => setCat(n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <div className="result">
+            <b>{filtered.length} กิจกรรม</b>
+            <span>ใกล้ที่สุด</span>
+          </div>
+          <div className="list">
+            {filtered.map((a) => (
+              <Card
+                key={a.id}
+                a={a}
+                open={() => open(a.id)}
+                saved={saved.includes(a.id)}
+                toggle={() => toggleSave(a.id)}
+              />
+            ))}
+            {!filtered.length && (
+              <div className="empty">
+                <Search />
+                <h3>ไม่พบกิจกรรมที่ตรงกัน</h3>
+                <p>ลองเปลี่ยนคำค้นหาหรือหมวดกิจกรรม</p>
+                <button
+                  onClick={() => {
+                    setQ("");
+                    setCat("ทั้งหมด");
+                  }}
+                >
+                  ล้างตัวกรอง
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
+      )}
+      {view === "detail" && (
+        <main className="screen detail fade">
+          <div className={"hero c" + selected.id}>
+            <button className="float left" onClick={() => setView("discover")}>
+              <ArrowLeft />
+            </button>
+            <button
+              className="float right"
+              onClick={() => toggleSave(selected.id)}
+            >
+              <Bookmark
+                fill={saved.includes(selected.id) ? "currentColor" : "none"}
+              />
+            </button>
+          </div>
+          <div className="detailbody">
+            <span className="pill">{selected.cat}</span>
+            <h1>{selected.title}</h1>
+            <div className="host">
+              <i>{selected.host[0]}</i>
+              <span>
+                จัดโดย<b>{selected.host}</b>
+              </span>
+              <button>
+                <MessageCircle />
+                ข้อความ
+              </button>
+            </div>
+            <div className="infolist">
+              <Info I={CalendarDays} a={selected.date} b={selected.time} />
+              <Info
+                I={MapPin}
+                a={selected.place}
+                b="แจ้งจุดนัดพบหลังเข้าร่วม"
+              />
+              <Info
+                I={Users}
+                a={selected.joined + "/" + selected.cap + " คน"}
+                b={selected.gender + " · อายุ " + selected.age}
+              />
+              <Info I={Trophy} a={"ระดับ " + selected.level} b="" />
+            </div>
+            <h2>เกี่ยวกับกิจกรรม</h2>
+            <p className="description">{selected.desc}</p>
+            <aside className="safety">
+              <ShieldCheck />
+              <span>
+                <b>นัดพบอย่างปลอดภัย</b>
+                พบกันในพื้นที่สาธารณะและแจ้งคนใกล้ตัวก่อนเข้าร่วม
+              </span>
+            </aside>
+            <button className="report">
+              <Flag />
+              รายงานกิจกรรมนี้
+            </button>
+          </div>
+          <div className="joinbar">
+            <button
+              className={selected.joinedByMe ? "joined" : ""}
+              onClick={() => {
+                setActs((v) =>
+                  v.map((a) =>
+                    a.id === selected.id
+                      ? {
+                          ...a,
+                          joinedByMe: !a.joinedByMe,
+                          joined: a.joined + (a.joinedByMe ? -1 : 1),
+                        }
+                      : a,
+                  ),
+                );
+                notify(
+                  selected.joinedByMe
+                    ? "ออกจากกิจกรรมแล้ว"
+                    : "เข้าร่วมกิจกรรมเรียบร้อย",
+                );
+              }}
+            >
+              {selected.joinedByMe ? "เข้าร่วมแล้ว" : "เข้าร่วมกิจกรรม"}
+            </button>
+          </div>
+        </main>
+      )}
+      {view === "create" && (
+        <Create
+          back={() => setView("home")}
+          done={(a) => {
+            setActs((v) => [a, ...v]);
+            notify("สร้างกิจกรรมเรียบร้อยแล้ว");
+            setView("mine");
+          }}
+        />
+      )}
+      {view === "mine" && (
+        <main className="screen pad fade">
+          <Top title="กิจกรรมของฉัน" />
+          <section className="summary">
+            <i>ม</i>
+            <span>
+              <b>นัดหมายที่กำลังจะมาถึง</b>
+              <small>
+                {acts.filter((a) => a.joinedByMe).length + 1} กิจกรรม
+              </small>
+            </span>
+          </section>
+          <div className="tabs">
+            <button className="on">กำลังจะมาถึง</button>
+            <button>สร้างโดยฉัน</button>
+            <button>ที่ผ่านมา</button>
+          </div>
+          <div className="list">
+            {acts
+              .filter((a) => a.joinedByMe || a.id === 2)
+              .map((a) => (
+                <Card
+                  key={a.id}
+                  a={a}
+                  open={() => open(a.id)}
+                  saved={saved.includes(a.id)}
+                  toggle={() => toggleSave(a.id)}
+                />
+              ))}
+          </div>
+        </main>
+      )}
+      {view === "profile" && (
+        <main className="screen pad fade">
+          <Top
+            title="โปรไฟล์"
+            action={<button className="textaction">ตั้งค่า</button>}
+          />
+          <section className="profile">
+            <i>ม</i>
+            <span>
+              <h1>มินตรา สุวรรณ</h1>
+              <p>กรุงเทพฯ · สมาชิกตั้งแต่ปี 2569</p>
+              <button>แก้ไขโปรไฟล์</button>
+            </span>
+          </section>
+          <div className="stats">
+            <span>
+              <b>8</b>เข้าร่วมแล้ว
+            </span>
+            <span>
+              <b>3</b>จัดกิจกรรม
+            </span>
+            <span>
+              <b>{saved.length}</b>บันทึกไว้
+            </span>
+          </div>
+          <section className="block">
+            <h2>เกี่ยวกับฉัน</h2>
+            <p>
+              ชอบลองกิจกรรมใหม่ ๆ หาเพื่อนไปคาเฟ่ ออกกำลัง
+              และเรียนรู้สิ่งใหม่ในวันหยุด
+            </p>
+          </section>
+          <section className="block">
+            <h2>ความสนใจ</h2>
+            <div className="tags">
+              <i>ท่องเที่ยว</i>
+              <i>อาหาร</i>
+              <i>ดนตรี</i>
+              <i>เรียนรู้</i>
+            </div>
+          </section>
+          <section className="block menu">
+            <button>
+              <ShieldCheck />
+              ความปลอดภัยและความเป็นส่วนตัว
+              <ChevronRight />
+            </button>
+            <button>
+              <MessageCircle />
+              ศูนย์ช่วยเหลือ
+              <ChevronRight />
+            </button>
+          </section>
+          <button className="logout" onClick={() => setView("welcome")}>
+            ออกจากระบบ
+          </button>
+        </main>
+      )}
+      {view !== "detail" && view !== "create" && (
+        <Nav view={view} set={setView} />
+      )}
+    </Shell>
+  );
+}
+function Title({ text, action }: { text: string; action: () => void }) {
+  return (
+    <div className="title">
+      <h2>{text}</h2>
+      <button onClick={action}>ดูทั้งหมด</button>
+    </div>
+  );
+}
+function Info({ I, a, b }: { I: typeof Trophy; a: string; b: string }) {
+  return (
+    <div>
+      <I />
+      <span>
+        <b>{a}</b>
+        {b}
+      </span>
+    </div>
+  );
+}
+function Create({ back, done }: { back: () => void; done: (a: Act) => void }) {
+  const [title, setTitle] = useState(""),
+    [cat, setCat] = useState<Cat>("กีฬา"),
+    [place, setPlace] = useState(""),
+    [desc, setDesc] = useState("");
+  return (
+    <main className="screen form fade">
+      <Top title="สร้างกิจกรรม" back={back} />
+      <section className="formintro">
+        <span>ขั้นตอนเดียว</span>
+        <h1>ชวนเพื่อนออกไปทำสิ่งที่ชอบ</h1>
+        <p>ใส่ข้อมูลให้ชัดเจน เพื่อให้คนที่สนใจตัดสินใจได้ง่ายขึ้น</p>
+      </section>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          done({
+            id: Date.now(),
+            title,
+            cat,
+            date: "ส. 5 ต.ค.",
+            time: "14:00–16:00",
+            place,
+            joined: 1,
+            cap: 8,
+            level: "ทุกระดับ",
+            gender: "ทุกเพศ",
+            age: "18 ปีขึ้นไป",
+            host: "มินตรา",
+            desc: desc || "มาร่วมทำกิจกรรมและทำความรู้จักเพื่อนใหม่ไปด้วยกัน",
+          });
+        }}
+      >
+        <label>
+          ชื่อกิจกรรม
+          <input
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="เช่น ชวนตีแบดหลังเลิกเรียน"
+          />
+        </label>
+        <label>
+          หมวดกิจกรรม
+          <select value={cat} onChange={(e) => setCat(e.target.value as Cat)}>
+            {cats.map(([n]) => (
+              <option key={n}>{n}</option>
+            ))}
+          </select>
+        </label>
+        <div className="twocol">
+          <label>
+            วันที่
+            <input type="date" defaultValue="2026-10-05" />
+          </label>
+          <label>
+            เวลา
+            <input type="time" defaultValue="14:00" />
+          </label>
+        </div>
+        <label>
+          สถานที่
+          <input
+            required
+            value={place}
+            onChange={(e) => setPlace(e.target.value)}
+            placeholder="สถานที่หรือพื้นที่โดยประมาณ"
+          />
+        </label>
+        <label>
+          จำนวนสูงสุด
+          <input type="number" min="2" defaultValue="8" />
+        </label>
+        <label>
+          รายละเอียด
+          <textarea
+            rows={4}
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            placeholder="เล่าบรรยากาศและสิ่งที่ควรเตรียม"
+          />
+        </label>
+        <aside className="demo">
+          <ShieldCheck />
+          สถานที่สาธารณะช่วยให้ทุกคนรู้สึกปลอดภัยมากขึ้น
+        </aside>
+        <button className="primary" disabled={!title || !place}>
+          เผยแพร่กิจกรรม
+        </button>
+      </form>
+    </main>
+  );
+}
