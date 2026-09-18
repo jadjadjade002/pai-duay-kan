@@ -53,6 +53,7 @@ type Act = {
   host: string;
   desc: string;
   joinedByMe?: boolean;
+  image?: string;
 };
 const cats: [Cat, typeof Trophy][] = [
   ["กีฬา", Trophy],
@@ -77,6 +78,7 @@ const seed: Act[] = [
     age: "18–35 ปี",
     host: "พีท",
     desc: "วิ่งสบาย ๆ ระยะประมาณ 5 กิโลเมตร ชวนกันออกกำลังและรู้จักเพื่อนใหม่ ไม่ต้องทำเวลา มือใหม่มาได้",
+    image: "/activities/activity-1-running/cover.jpg",
   },
   {
     id: 2,
@@ -92,6 +94,7 @@ const seed: Act[] = [
     age: "18–30 ปี",
     host: "อิง",
     desc: "เดินเล่น ถ่ายภาพ และแวะชิมของอร่อยในย่านตลาดน้อย เน้นบรรยากาศสบาย ๆ และเคารพพื้นที่ชุมชน",
+    image: "/activities/activity-2-travel/cover.jpg",
   },
   {
     id: 3,
@@ -107,6 +110,7 @@ const seed: Act[] = [
     age: "18–28 ปี",
     host: "นนท์",
     desc: "รวมตัวเล่นบอร์ดเกมแนวปาร์ตี้และวางแผน มาคนเดียวได้ มีคนสอนกติกาทุกเกม",
+    image: "/activities/activity-3-boardgame/cover.jpg",
   },
   {
     id: 4,
@@ -122,6 +126,7 @@ const seed: Act[] = [
     age: "18–35 ปี",
     host: "เมย์",
     desc: "วงเล็ก ๆ สำหรับคนอยากฝึกกีตาร์และร้องเพลง แลกเพลงกันเล่นแบบไม่กดดัน",
+    image: "/activities/activity-4-music/cover.jpg",
   },
   {
     id: 5,
@@ -137,6 +142,7 @@ const seed: Act[] = [
     age: "20–40 ปี",
     host: "ฝน",
     desc: "ลองร้านเล็ก ๆ ในย่านอารีย์ แชร์เมนู แบ่งกันชิม และคุยกับเพื่อนใหม่แบบกลุ่มเล็ก",
+    image: "/activities/activity-5-food/cover.jpg",
   },
   {
     id: 6,
@@ -152,6 +158,7 @@ const seed: Act[] = [
     age: "18 ปีขึ้นไป",
     host: "เจ",
     desc: "ฝึกสนทนาภาษาอังกฤษผ่านหัวข้อใกล้ตัว แบ่งกลุ่มย่อยและช่วยกันให้คำแนะนำอย่างเป็นมิตร",
+    image: "/activities/activity-6-learning/cover.jpg",
   },
 ];
 function Logo({ small = false }: { small?: boolean }) {
@@ -243,7 +250,16 @@ function Card({
       onClick={open}
       onKeyDown={(e) => e.key === "Enter" && open()}
     >
-      <div className={"cover c" + a.id}>
+      <div
+        className={"cover c" + a.id}
+        style={
+          a.image
+            ? {
+                backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.05) 45%, rgba(0,0,0,0.4) 100%), url(${a.image})`,
+              }
+            : undefined
+        }
+      >
         <span>{a.cat}</span>
         <button
           onClick={(e) => {
@@ -575,8 +591,17 @@ export default function App() {
       )}
       {view === "detail" && (
         <main className="screen detail fade">
-          <div className={"hero c" + selected.id}>
-            <button className="float left" onClick={() => setView("discover")}>
+          <div
+            className={"hero c" + selected.id}
+            style={
+              selected.image
+                ? {
+                    backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.1) 45%, rgba(0,0,0,0.5) 100%), url(${selected.image})`,
+                  }
+                : undefined
+            }
+          >
+            <button className="float left" onClick={() => setView("home")}>
               <ArrowLeft />
             </button>
             <button
@@ -797,6 +822,14 @@ function Create({ back, done }: { back: () => void; done: (a: Act) => void }) {
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          const defaultCovers: Record<Cat, string> = {
+            กีฬา: "/activities/activity-1-running/cover.jpg",
+            ท่องเที่ยว: "/activities/activity-2-travel/cover.jpg",
+            เกม: "/activities/activity-3-boardgame/cover.jpg",
+            ดนตรี: "/activities/activity-4-music/cover.jpg",
+            อาหาร: "/activities/activity-5-food/cover.jpg",
+            เรียนรู้: "/activities/activity-6-learning/cover.jpg",
+          };
           done({
             id: Date.now(),
             title,
@@ -811,6 +844,7 @@ function Create({ back, done }: { back: () => void; done: (a: Act) => void }) {
             age: "18 ปีขึ้นไป",
             host: "มินตรา",
             desc: desc || "มาร่วมทำกิจกรรมและทำความรู้จักเพื่อนใหม่ไปด้วยกัน",
+            image: defaultCovers[cat] || "/activities/activity-1-running/cover.jpg",
           });
         }}
       >

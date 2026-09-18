@@ -1116,30 +1116,63 @@ textarea:focus-visible {
   .phone {
     height: 852px;
     min-height: 852px;
+    max-height: 852px;
     border-radius: 42px;
     border: 7px solid #111720;
     box-shadow: 0 30px 90px #000;
-    overflow: auto;
-    scrollbar-width: none;
-  }
-  .phone::-webkit-scrollbar {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
   }
   .screen,
   .welcome,
-  .auth {
-    min-height: 838px;
+  .auth,
+  .form {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
   }
-  .nav,
-  .joinbar {
-    position: sticky;
-    bottom: 0;
+  .screen::-webkit-scrollbar,
+  .welcome::-webkit-scrollbar,
+  .auth::-webkit-scrollbar,
+  .form::-webkit-scrollbar {
+    display: none;
+  }
+  .pad {
+    min-height: auto;
+  }
+  .nav {
+    position: relative;
+    flex-shrink: 0;
+    bottom: auto;
     left: auto;
     width: 100%;
     transform: none;
   }
-  .pad {
-    min-height: auto;
+  .detail {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+  .detail .detailbody {
+    flex: 1 1 0%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding-bottom: 24px;
+  }
+  .detail .detailbody::-webkit-scrollbar {
+    display: none;
+  }
+  .joinbar {
+    position: relative;
+    flex-shrink: 0;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    transform: none;
   }
 }
 @media (max-width: 340px) {
@@ -1164,5 +1197,11 @@ textarea:focus-visible {
   }
 }
 .cover {
-  height: 96px;
+  height: 110px;
+  background-size: cover;
+  background-position: center;
+}
+.hero {
+  background-size: cover;
+  background-position: center;
 }
