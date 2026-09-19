@@ -386,19 +386,24 @@ textarea:focus-visible {
   border-radius: 14px;
   background: #fff;
   position: relative;
+  display: grid;
+  place-items: center;
+  color: var(--i);
+  box-shadow: 0 2px 8px rgba(20, 35, 59, 0.04);
 }
 .hello button svg {
   width: 20px;
+  height: 20px;
 }
 .hello i {
   position: absolute;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   background: #f43f5e;
   border: 2px solid #fff;
   border-radius: 50%;
-  right: 9px;
-  top: 8px;
+  right: 10px;
+  top: 9px;
 }
 .searchbox,
 .searchinput {
