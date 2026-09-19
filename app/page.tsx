@@ -762,17 +762,27 @@ function Auth({
 }: {
   reg: boolean;
   back: () => void;
-  done: () => void;
+  done: (name?: string) => void;
   swap: () => void;
 }) {
   const [loading, setLoading] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+
   const go = (p: string) => {
     setLoading(p);
-    setTimeout(done, 500);
+    setTimeout(() => done(name.trim()), 500);
   };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    go(reg ? "register" : "login");
+  };
+
   return (
     <main className="auth fade">
-      <button className="icon" onClick={back}>
+      <button className="icon" onClick={back} type="button" aria-label="ย้อนกลับ">
         <ArrowLeft />
       </button>
       <div className="authbrand">
@@ -786,32 +796,77 @@ function Auth({
           ? "สร้างโปรไฟล์สั้น ๆ แล้วออกไปทำสิ่งที่ชอบด้วยกัน"
           : "เข้าสู่ระบบเพื่อดูนัดหมายและกิจกรรมที่บันทึกไว้"}
       </p>
-      {reg && (
+
+      <form onSubmit={handleSubmit} className="auth-form">
         <div className="fields">
-          <label>
-            ชื่อที่ต้องการให้แสดง
-            <input placeholder="เช่น มินตรา" />
-          </label>
+          {reg && (
+            <label>
+              ชื่อที่ต้องการให้แสดง
+              <input
+                required
+                placeholder="เช่น มินตรา"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </label>
+          )}
           <label>
             อีเมล
-            <input type="email" placeholder="name@email.com" />
+            <input
+              type="email"
+              required
+              placeholder="name@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+          <label>
+            รหัสผ่าน
+            <input
+              type="password"
+              required
+              placeholder={
+                reg ? "รหัสผ่านอย่างน้อย 6 ตัวอักษร" : "กรอกรหัสผ่านของคุณ"
+              }
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+            />
           </label>
         </div>
-      )}
+
+        <button
+          type="submit"
+          className="primary auth-submit"
+          disabled={loading === (reg ? "register" : "login")}
+        >
+          {loading === (reg ? "register" : "login")
+            ? reg
+              ? "กำลังสมัครสมาชิก..."
+              : "กำลังเข้าสู่ระบบ..."
+            : reg
+              ? "สมัครสมาชิก"
+              : "เข้าสู่ระบบ"}
+        </button>
+      </form>
+
+      <div className="auth-divider">
+        <span>หรือดำเนินการต่อด้วย</span>
+      </div>
+
       <div className="social">
-        <button onClick={() => go("Google")}>
+        <button type="button" onClick={() => go("Google")}>
           <b>G</b>
           {loading === "Google"
             ? "กำลังดำเนินการ..."
             : "ดำเนินการต่อด้วย Google"}
         </button>
-        <button onClick={() => go("Facebook")}>
+        <button type="button" onClick={() => go("Facebook")}>
           <b className="facebook-letter">f</b>
           {loading === "Facebook"
             ? "กำลังดำเนินการ..."
             : "ดำเนินการต่อด้วย Facebook"}
         </button>
-        <button onClick={() => go("Apple")}>
+        <button type="button" onClick={() => go("Apple")}>
           <Apple />
           {loading === "Apple" ? "กำลังดำเนินการ..." : "ดำเนินการต่อด้วย Apple"}
         </button>
@@ -822,7 +877,9 @@ function Auth({
       </aside>
       <p className="swap">
         {reg ? "มีบัญชีอยู่แล้ว" : "ยังไม่มีบัญชี"}{" "}
-        <button onClick={swap}>{reg ? "เข้าสู่ระบบ" : "สมัครสมาชิก"}</button>
+        <button type="button" onClick={swap}>
+          {reg ? "เข้าสู่ระบบ" : "สมัครสมาชิก"}
+        </button>
       </p>
       <small className="terms">
         การดำเนินการต่อแสดงว่าคุณยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว
@@ -837,7 +894,8 @@ export default function App() {
     [cat, setCat] = useState<Cat | "ทั้งหมด">("ทั้งหมด"),
     [q, setQ] = useState(""),
     [saved, setSaved] = useState([2]),
-    [toast, setToast] = useState("");
+    [toast, setToast] = useState(""),
+    [userName, setUserName] = useState("มินตรา");
   const selected = acts.find((a) => a.id === picked) || acts[0],
     filtered = useMemo(
       () =>
@@ -911,7 +969,10 @@ export default function App() {
         <Auth
           reg={view === "register"}
           back={() => setView("welcome")}
-          done={() => setView("home")}
+          done={(n) => {
+            if (n) setUserName(n);
+            setView("home");
+          }}
           swap={() => setView(view === "login" ? "register" : "login")}
         />
       </Shell>
@@ -928,7 +989,7 @@ export default function App() {
         <main className="screen pad fade">
           <header className="hello">
             <div>
-              <span>สวัสดี มินตรา</span>
+              <span>สวัสดี {userName}</span>
               <h1>วันนี้อยากทำอะไร</h1>
             </div>
             <button>
@@ -1194,9 +1255,9 @@ export default function App() {
             action={<button className="textaction">ตั้งค่า</button>}
           />
           <section className="profile">
-            <i>ม</i>
+            <i>{userName ? userName.slice(0, 1) : "ม"}</i>
             <span>
-              <h1>มินตรา สุวรรณ</h1>
+              <h1>{userName}{userName === "มินตรา" ? " สุวรรณ" : ""}</h1>
               <p>กรุงเทพฯ · สมาชิกตั้งแต่ปี 2569</p>
               <button>แก้ไขโปรไฟล์</button>
             </span>

@@ -222,8 +222,9 @@ textarea:focus-visible {
 }
 .auth {
   min-height: 100dvh;
-  padding: 20px 24px;
+  padding: 20px 24px 40px;
   background: linear-gradient(180deg, #eff7ff, #fff 40%);
+  overflow-y: auto;
 }
 .authbrand {
   display: flex;
@@ -238,6 +239,7 @@ textarea:focus-visible {
 }
 .authbrand .logo svg {
   width: 26px;
+  height: 26px;
 }
 .authbrand b {
   font-size: 19px;
@@ -251,6 +253,39 @@ textarea:focus-visible {
   color: var(--m);
   line-height: 1.6;
   margin: 0 0 20px;
+}
+.auth-form {
+  display: grid;
+  gap: 4px;
+}
+.auth-submit {
+  width: 100%;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(21, 94, 239, 0.22);
+  transition: all 0.15s ease;
+}
+.auth-submit:active {
+  transform: scale(0.98);
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 18px 0 14px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--l);
+}
+.auth-divider span {
+  padding: 0 10px;
+  white-space: nowrap;
 }
 .fields {
   display: grid;
